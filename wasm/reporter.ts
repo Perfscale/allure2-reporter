@@ -10,7 +10,7 @@ import { convert } from "./convert.ts";
  * Config (`with.config`):
  * - `name` (string): override the Allure suite name.
  *
- * Build:  npm run build:wasm
+ * Build:  npm run build
  * Use:
  *   report:
  *     reporters:

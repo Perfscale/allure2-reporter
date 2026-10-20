@@ -107,48 +107,27 @@ never requires a build). Requires perfscale ≥ v0.27.0 at runtime.
 UUIDs are deterministic (derived from `run_id`) because WASM guests get no
 `wasi:random` — same report in, same file names out.
 
-## Standalone converter (v1, no WASM)
-
-Have a `report@v1` JSON file already (e.g. from `--report json:out.json`)
-and no WASM reporter wired up? The plain-JS converter does the same mapping
-as a CLI, zero runtime dependencies:
-
-```bash
-perfscale run -f test.yaml -c config.yaml --report json:report.json
-npx @perfscale/allure2-reporter report.json -o allure-results
-allure serve allure-results
-```
-
-It also reads stdin (`... --report json:- | perfscale-report-allure2 - -o out`).
-See `perfscale-report-allure2 --help`. The WASM reporter's mapping
-([`wasm/convert.ts`](wasm/convert.ts)) is a TypeScript port of
-[`src/convert.js`](src/convert.js); a unit test asserts both produce
-identical output modulo UUIDs.
-
 ## Repository layout
 
 ```
 wasm/                 the WASM reporter (TypeScript, @perfscale/library-sdk)
   reporter.ts         defineReporter entry — emits via the host's emit-file
-  convert.ts          report@v1 -> allure2 mapping (TS port, deterministic uuids)
-  reporter.test.ts    unit tests incl. v1-parity (SDK testReport harness)
+  convert.ts          report@v1 -> allure2 mapping (deterministic uuids)
+  reporter.test.ts    unit tests (SDK testReport harness, no WASM runtime)
+  testdata/           a real report@v1 document the tests run against
 dist/allure2-reporter.wasm   prebuilt reporter, committed for download-and-use
-src/                  v1 standalone converter (plain JS CLI, unchanged)
-fixtures/             real report@v1 document for tests
 scripts/
   demo.test.yaml / demo.config.yaml   the demo run (local echo server, no network)
   echo-server.mjs                     deterministic httpbin stand-in
   build-wasm.sh                       npm install + build dist/*.wasm
-  generate-fixture.sh                 regenerate fixtures with a real run
 .github/workflows/demo.yml            CI: build wasm -> perfscale run -> allure -> Pages
 ```
 
 ## Development
 
 ```bash
-npm test                 # v1 converter: node:test suite over the real fixture
-npm run test:wasm        # wasm reporter unit tests (needs npm --prefix wasm install)
-npm run build:wasm       # rebuild dist/allure2-reporter.wasm
+npm test                 # reporter unit tests (delegates to wasm/)
+npm run build            # rebuild dist/allure2-reporter.wasm
 
 # local end-to-end with a real perfscale binary:
 node scripts/echo-server.mjs &

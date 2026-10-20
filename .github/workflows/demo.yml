@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: npm --prefix wasm install --no-audit --no-fund
       - run: npm test
 
   demo:
@@ -46,9 +47,6 @@ jobs:
           ls -l dist/allure2-reporter.wasm
           # sanity: the component embeds the reporter world name
           strings dist/allure2-reporter.wasm | grep -m1 perfscale:reporter
-
-      - name: wasm reporter unit tests
-        run: npm --prefix wasm test
 
       - name: start the demo echo server
         run: |

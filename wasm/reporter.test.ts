@@ -6,14 +6,14 @@ import { testReport, type ReportV1 } from "@perfscale/library-sdk";
 import reporter from "./reporter.ts";
 import { convert, uuid } from "./convert.ts";
 
-const fixturePath = new URL("../fixtures/sample-report.json", import.meta.url)
+const fixturePath = new URL("./testdata/sample-report.json", import.meta.url)
   .pathname;
 const report = JSON.parse(readFileSync(fixturePath, "utf8")) as ReportV1;
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
-describe("convert() (wasm port)", () => {
+describe("convert()", () => {
   const files = convert(report, { fallbackName: "sample-report" });
   const results = files.filter((f) => f.name.endsWith("-result.json"));
   const parsed = results.map((f) => JSON.parse(f.contents));
@@ -47,7 +47,7 @@ describe("convert() (wasm port)", () => {
     }
   });
 
-  it("maps step status and verdicts like the v1 converter", () => {
+  it("maps step status and threshold verdicts", () => {
     const homepage = parsed.find((c) => c.name === "homepage");
     assert.equal(homepage.status, "passed");
     const thresholds = parsed.filter((c) => c.name.startsWith("threshold: "));
@@ -101,30 +101,5 @@ describe("reporter (testReport harness)", () => {
       tc.labels.find((l: { name: string }) => l.name === "suite").value,
       "ci",
     );
-  });
-
-  it("matches the v1 converter file-for-file (modulo uuids)", async () => {
-    const UUID_G =
-      /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/g;
-    const normalize = (files: { name: string; contents: string }[]) =>
-      files
-        .map((f) => ({
-          suffix: f.name.replace(UUID_G, "<uuid>"),
-          contents: f.contents.replace(UUID_G, "<uuid>"),
-        }))
-        .sort((a, b) => a.contents.localeCompare(b.contents));
-    const v2 = normalize(convert(report, { fallbackName: "sample-report" }));
-    const v1 = await import("../src/convert.js");
-    const v1files = normalize(
-      v1.convert(report, { fallbackName: "sample-report" }).map(
-        (f: { name: string; raw?: boolean; contents: unknown }) => ({
-          name: f.name,
-          contents: f.raw
-            ? String(f.contents)
-            : JSON.stringify(f.contents, null, 2) + "\n",
-        }),
-      ),
-    );
-    assert.deepEqual(v2, v1files);
   });
 });

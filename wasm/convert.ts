@@ -1,12 +1,10 @@
 /**
- * report@v1 -> Allure2 results, TypeScript port of ../src/convert.js for the
- * WASM reporter build.
+ * report@v1 -> Allure2 results mapping for the WASM reporter.
  *
- * Differences from the standalone converter:
- * - `convert()` returns files with serialized string `contents` (the WASM
- *   reporter hands them straight to the host's `emit-file`).
- * - UUIDs are deterministic (hash of run_id + counter): the component build
- *   disables `wasi:random`, so `crypto.randomUUID()` is unavailable.
+ * `convert()` returns files with serialized string `contents`, ready to hand
+ * to the host's `emit-file`. UUIDs are deterministic (hash of run_id +
+ * counter): the component build disables `wasi:random`, so
+ * `crypto.randomUUID()` is unavailable.
  */
 
 import type { ReportV1 } from "@perfscale/library-sdk";

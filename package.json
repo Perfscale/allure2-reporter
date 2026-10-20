@@ -1,7 +1,8 @@
 {
   "name": "@perfscale/allure2-reporter",
-  "version": "0.1.0",
-  "description": "Convert a perfscale report@v1 JSON document into an Allure2 results directory",
+  "version": "0.2.0",
+  "private": true,
+  "description": "perfscale WASM reporter (perfscale:reporter@0.1.0) rendering report@v1 as Allure2 results",
   "type": "module",
   "license": "MIT OR Apache-2.0",
   "homepage": "https://github.com/Perfscale/allure2-reporter",
@@ -9,29 +10,19 @@
     "type": "git",
     "url": "git+https://github.com/Perfscale/allure2-reporter.git"
   },
-  "bin": {
-    "perfscale-report-allure2": "src/cli.js"
-  },
-  "exports": {
-    ".": "./src/convert.js"
-  },
-  "files": [
-    "src",
-    "fixtures"
-  ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
-    "test": "node --test 'test/*.test.js'",
-    "test:wasm": "npm --prefix wasm test",
-    "build:wasm": "./scripts/build-wasm.sh"
+    "test": "npm --prefix wasm test",
+    "build": "./scripts/build-wasm.sh"
   },
   "keywords": [
     "perfscale",
     "allure",
     "allure2",
     "load-testing",
+    "wasm",
     "report"
   ]
 }
