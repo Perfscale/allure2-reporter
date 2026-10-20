@@ -34,22 +34,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # @perfscale/library-sdk is not published to npm yet — pack it from the
-      # source repo.
-      # TODO: once @perfscale/library-sdk is on npm, drop this checkout and
-      # install it as a normal devDependency.
-      - name: checkout sdk-libraries (for @perfscale/library-sdk tarball)
-        uses: actions/checkout@v4
-        with:
-          repository: Perfscale/sdk-libraries
-          path: sdk-libraries
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: build wasm reporter from source
-        run: SDK_DIR=sdk-libraries/ts ./scripts/build-wasm.sh
+        run: ./scripts/build-wasm.sh
 
       - name: rebuilt wasm matches the committed contract
         run: |
@@ -60,14 +50,15 @@ jobs:
       - name: wasm reporter unit tests
         run: npm --prefix wasm test
 
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-
-      # No perfscale release ships wasm reporters yet — install from main.
-      # TODO: after perfscale v0.27.0, download the release binary instead.
-      - name: install perfscale (from main)
-        run: cargo install --locked --git https://github.com/Perfscale/perfscale perfscale-cli
+      - name: install perfscale (v0.27.0 release binary)
+        run: |
+          VERSION=0.27.0
+          BASE="https://github.com/Perfscale/perfscale/releases/download/v${VERSION}"
+          curl -fsSLO "$BASE/perfscale-linux-amd64"
+          curl -fsSL "$BASE/sha256sums.txt" -o sha256sums.txt
+          grep 'perfscale-linux-amd64$' sha256sums.txt | sha256sum -c -
+          install -m 755 perfscale-linux-amd64 "$HOME/.local/bin/perfscale"
+          perfscale --version
 
       - name: run the demo load test with the wasm reporter
         run: |

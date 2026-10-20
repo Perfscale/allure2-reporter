@@ -82,16 +82,15 @@ the build tool) lives in
 
 ### Building this reporter from source
 
-The SDK is not on npm yet, so the build packs it from a local checkout of
-`sdk-libraries`:
+The SDK is a normal npm devDependency
+([`@perfscale/library-sdk`](https://www.npmjs.com/package/@perfscale/library-sdk)):
 
 ```bash
-git clone https://github.com/Perfscale/sdk-libraries ../sdk-libraries
-./scripts/build-wasm.sh        # SDK_DIR=... to override the checkout path
+./scripts/build-wasm.sh   # npm install (in wasm/) + typecheck + componentize
 ```
 
 Output: `dist/allure2-reporter.wasm` (committed to the repo, so consuming it
-never requires a build).
+never requires a build). Requires perfscale ≥ v0.27.0 at runtime.
 
 ## Mapping: `report@v1` → Allure2
 
@@ -139,7 +138,7 @@ fixtures/             real report@v1 document for tests
 scripts/
   demo.test.yaml / demo.config.yaml   the demo run (local echo server, no network)
   echo-server.mjs                     deterministic httpbin stand-in
-  build-wasm.sh                       pack SDK + build dist/*.wasm
+  build-wasm.sh                       npm install + build dist/*.wasm
   generate-fixture.sh                 regenerate fixtures with a real run
 .github/workflows/demo.yml            CI: build wasm -> perfscale run -> allure -> Pages
 ```
