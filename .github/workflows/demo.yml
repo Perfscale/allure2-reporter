@@ -57,6 +57,7 @@ jobs:
           curl -fsSLO "$BASE/perfscale-linux-amd64"
           curl -fsSL "$BASE/sha256sums.txt" -o sha256sums.txt
           grep 'perfscale-linux-amd64$' sha256sums.txt | sha256sum -c -
+          mkdir -p "$HOME/.local/bin"
           install -m 755 perfscale-linux-amd64 "$HOME/.local/bin/perfscale"
           perfscale --version
 
