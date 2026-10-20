@@ -15,6 +15,11 @@ TARBALL="wasm/perfscale-library-sdk-$SDK_VERSION.tgz"
 if [ ! -f "$TARBALL" ]; then
   echo "packing @perfscale/library-sdk@$SDK_VERSION from $SDK_DIR"
   rm -f wasm/perfscale-library-sdk-*.tgz
+  # dist/ is gitignored in sdk-libraries: a fresh clone (CI) has no build
+  # output, and the tarball's `files` list needs it.
+  if [ ! -f "$SDK_DIR/dist/index.js" ]; then
+    (cd "$SDK_DIR" && npm install --no-audit --no-fund && npm run build)
+  fi
   (cd "$SDK_DIR" && npm pack --pack-destination "$OLDPWD/wasm" >/dev/null)
 fi
 
