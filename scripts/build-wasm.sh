@@ -8,7 +8,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-SDK_DIR="${SDK_DIR:-../sdk-libraries/ts}"
+SDK_DIR="$(cd "${SDK_DIR:-../sdk-libraries/ts}" && pwd)"
 SDK_VERSION="$(node -p "require('$SDK_DIR/package.json').version")"
 TARBALL="wasm/perfscale-library-sdk-$SDK_VERSION.tgz"
 
