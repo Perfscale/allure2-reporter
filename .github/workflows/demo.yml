@@ -50,24 +50,20 @@ jobs:
       - name: wasm reporter unit tests
         run: npm --prefix wasm test
 
-      - name: install perfscale (v0.27.0 release binary)
-        run: |
-          VERSION=0.27.0
-          BASE="https://github.com/Perfscale/perfscale/releases/download/v${VERSION}"
-          curl -fsSLO "$BASE/perfscale-linux-amd64"
-          curl -fsSL "$BASE/sha256sums.txt" -o sha256sums.txt
-          grep 'perfscale-linux-amd64$' sha256sums.txt | sha256sum -c -
-          mkdir -p "$HOME/.local/bin"
-          install -m 755 perfscale-linux-amd64 "$HOME/.local/bin/perfscale"
-          perfscale --version
-
-      - name: run the demo load test with the wasm reporter
+      - name: start the demo echo server
         run: |
           node scripts/echo-server.mjs &
-          echo $! > echo.pid
-          trap 'kill $(cat echo.pid) 2>/dev/null || true' EXIT
           sleep 1
-          perfscale run -f scripts/demo.test.yaml -c scripts/demo.config.yaml -q
+
+      # Installs perfscale (checksum-verified) and runs the native engine;
+      # the wasm reporter is wired up in scripts/demo.config.yaml.
+      - name: run the demo load test with the wasm reporter
+        uses: Perfscale/github-action@v1
+        with:
+          version: v0.27.0
+          file: scripts/demo.test.yaml
+          config: scripts/demo.config.yaml
+          args: -q
 
       - name: verify the reporter output
         run: |
