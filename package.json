@@ -23,7 +23,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test 'test/*.test.js'",
     "test:wasm": "npm --prefix wasm test",
     "build:wasm": "./scripts/build-wasm.sh"
   },
