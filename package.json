@@ -23,7 +23,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:wasm": "npm --prefix wasm test",
+    "build:wasm": "./scripts/build-wasm.sh"
   },
   "keywords": [
     "perfscale",

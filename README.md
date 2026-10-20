@@ -1,45 +1,97 @@
 # @perfscale/allure2-reporter
 
-A reference implementation of a custom reporter for
-[perfscale](https://github.com/Perfscale/perfscale): it converts the
-canonical `report@v1` JSON document into an
-[Allure2](https://allurereport.org/) results directory.
+[![demo](https://github.com/Perfscale/allure2-reporter/actions/workflows/demo.yml/badge.svg)](https://github.com/Perfscale/allure2-reporter/actions/workflows/demo.yml)
 
-perfscale can emit an end-of-run JSON report (`--report json:out.json`,
-schema version `report@v1`) with run identity, per-step aggregates,
-threshold verdicts, and self-describing metrics. This package shows how a
-few dozen lines of plain JavaScript (zero runtime dependencies) turn that
-document into a rich Allure report — use it as-is, or as a starting point
-for your own reporter (Grafana, Datadog, HTML, whatever you need).
+A custom **WASM end-of-run reporter** for
+[perfscale](https://github.com/Perfscale/perfscale), written in TypeScript:
+at the end of a load run it renders the canonical `report@v1` document as an
+[Allure2](https://allurereport.org/) results directory — one test case per
+step, one per threshold verdict, plus `environment.properties`. The live
+demo report from CI is on
+[GitHub Pages](https://perfscale.github.io/allure2-reporter/).
+
+The reporter is a WASM component implementing
+[`perfscale:reporter@0.1.0`](https://github.com/Perfscale/perfscale/blob/main/wit/reporter/reporter.wit):
+the engine hands it the report JSON and its config, and it writes output
+files exclusively through the sandboxed `emit-file` host call — no
+filesystem or network access.
 
 ## Quickstart
 
 ```bash
-# 1. Run a load test, writing the canonical JSON report
-perfscale run -f test.yaml -c config.yaml --report json:report.json
+# 1. Grab the prebuilt reporter (committed to this repo — no build needed)
+curl -fLO https://github.com/Perfscale/allure2-reporter/raw/main/dist/allure2-reporter.wasm
+```
 
-# 2. Convert it to Allure2 results
-npx @perfscale/allure2-reporter report.json -o allure-results
+```yaml
+# 2. Reference it from your perfscale config (config.yaml)
+report:
+  reporters:
+    - use: wasm:./allure2-reporter.wasm
+      with:
+        output: ./allure-results     # where emit-file writes land
+        config:
+          name: my-suite             # optional Allure suite name override
+```
 
-# 3. View the report (requires the Allure CLI)
+```bash
+# 3. Run and view
+perfscale run -f test.yaml -c config.yaml
 allure serve allure-results
 ```
 
-The reporter also reads from stdin, so you can pipe straight into it:
+## Write your own reporter in 3 steps
+
+```ts
+// 1. defineReporter — wasm/my-reporter.ts
+import { defineReporter } from "@perfscale/library-sdk";
+
+export default defineReporter({
+  name: "my-reporter",
+  onReport(report, config, emit) {
+    // report: typed report@v1 (run, steps, verdicts, metrics)
+    // config: the `with.config` block from YAML
+    // emit:   the only output channel — writes into `with.output`
+    emit("hello.txt", `run ${report.run.run_id}: ${report.steps?.length ?? 0} steps\n`);
+    return "done"; // one-line summary the engine logs
+  },
+});
+```
 
 ```bash
-cat report.json | npx @perfscale/allure2-reporter - -o allure-results
+# 2. Build it to a WASM component (jco componentize under the hood)
+npx perfscale-library-build --kind reporter my-reporter.ts -o my-reporter.wasm
 ```
 
-### CLI
-
+```yaml
+# 3. Use it
+report:
+  reporters:
+    - use: wasm:./my-reporter.wasm
+      with: { output: ./my-output }
 ```
-perfscale-report-allure2 [report.json|-] [options]
 
-  -o, --output DIR   Output directory (default: allure-results)
-      --name NAME    Override the Allure suite name
-  -h, --help         Show help
+The contract is [`wit/reporter/reporter.wit`](https://github.com/Perfscale/perfscale/blob/main/wit/reporter/reporter.wit)
+(guest exports `on-report(report-json, config-json)`, host imports
+`emit-file(name, contents)` with traversal-safe confinement); background and
+design discussion in
+[Perfscale/perfscale#9](https://github.com/Perfscale/perfscale/issues/9).
+The TypeScript SDK (`defineReporter`, `ReportV1` types, `testReport` harness,
+the build tool) lives in
+[Perfscale/sdk-libraries](https://github.com/Perfscale/sdk-libraries/tree/main/ts).
+
+### Building this reporter from source
+
+The SDK is not on npm yet, so the build packs it from a local checkout of
+`sdk-libraries`:
+
+```bash
+git clone https://github.com/Perfscale/sdk-libraries ../sdk-libraries
+./scripts/build-wasm.sh        # SDK_DIR=... to override the checkout path
 ```
+
+Output: `dist/allure2-reporter.wasm` (committed to the repo, so consuming it
+never requires a build).
 
 ## Mapping: `report@v1` → Allure2
 
@@ -50,42 +102,59 @@ perfscale-report-allure2 [report.json|-] [options]
 | `run.started_at` + `step.duration.min/max` | `start`/`stop` in epoch ms: the step's observed duration window anchored at run start |
 | `step.count`, `step.rate`, `step.duration` quantiles | JSON attachment "perfscale step stats" on the step's test case |
 | `verdicts[]` | One test case per verdict, named `threshold: <metric> <expression>` — `passed` / `broken` on breach. A threshold breach is an SLO violation, not a test defect, hence `broken` rather than `failed`; the observed value goes into `statusDetails` and `parameters` |
-| `run.labels` | Allure labels on every test case; `suite` (or `service`) label picks the suite name, overridable with `--name` |
+| `run.labels` | Allure labels on every test case; `suite` (or `service`) label picks the suite name, overridable via `config.name` |
 | `run.perfscale_version`, `engine`, `run_id`, `duration_s`, `vus` | `environment.properties` (picked up by Allure automatically) |
 
-The fixture under `fixtures/sample-report.json` is a real
-`report@v1` document produced by `scripts/generate-fixture.sh` (requires a
-perfscale binary and network access to httpbin.org).
+UUIDs are deterministic (derived from `run_id`) because WASM guests get no
+`wasi:random` — same report in, same file names out.
 
-## Writing your own reporter
+## Standalone converter (v1, no WASM)
 
-The whole converter fits in one file ([`src/convert.js`](src/convert.js)).
-A custom reporter is three steps:
+Have a `report@v1` JSON file already (e.g. from `--report json:out.json`)
+and no WASM reporter wired up? The plain-JS converter does the same mapping
+as a CLI, zero runtime dependencies:
 
-1. **Get the JSON.** Run perfscale with `--report json:out.json` (or
-   `json:-` for stdout). The document is self-describing: `schemaVersion`
-   pins the contract (`report@v1`, additive-only evolution), durations are
-   seconds on the wire.
-2. **Parse it.** `JSON.parse` — that's it. The shape:
-   `run` (identity, labels), `steps[]` (per-step aggregates with
-   avg/p50/p90/p95/p99), `verdicts[]` (threshold pass/fail), `metrics[]`
-   (self-describing metric families). See the schema in
-   [crates/perfscale-core/src/report/v1.rs](https://github.com/Perfscale/perfscale/blob/main/crates/perfscale-core/src/report/v1.rs).
-3. **Render it.** Walk the arrays and emit whatever your target system
-   consumes. Here we write `<uuid>-result.json` test cases and
-   `environment.properties` into an output directory — roughly 100 lines
-   with no dependencies.
+```bash
+perfscale run -f test.yaml -c config.yaml --report json:report.json
+npx @perfscale/allure2-reporter report.json -o allure-results
+allure serve allure-results
+```
 
-The `json` reporter is one of several built-in renderers; the background
-and the canonical-report design are discussed in
-[Perfscale/perfscale#9](https://github.com/Perfscale/perfscale/issues/9)
-and the [perfscale docs](https://github.com/Perfscale/perfscale/tree/main/docs).
+It also reads stdin (`... --report json:- | perfscale-report-allure2 - -o out`).
+See `perfscale-report-allure2 --help`. The WASM reporter's mapping
+([`wasm/convert.ts`](wasm/convert.ts)) is a TypeScript port of
+[`src/convert.js`](src/convert.js); a unit test asserts both produce
+identical output modulo UUIDs.
+
+## Repository layout
+
+```
+wasm/                 the WASM reporter (TypeScript, @perfscale/library-sdk)
+  reporter.ts         defineReporter entry — emits via the host's emit-file
+  convert.ts          report@v1 -> allure2 mapping (TS port, deterministic uuids)
+  reporter.test.ts    unit tests incl. v1-parity (SDK testReport harness)
+dist/allure2-reporter.wasm   prebuilt reporter, committed for download-and-use
+src/                  v1 standalone converter (plain JS CLI, unchanged)
+fixtures/             real report@v1 document for tests
+scripts/
+  demo.test.yaml / demo.config.yaml   the demo run (local echo server, no network)
+  echo-server.mjs                     deterministic httpbin stand-in
+  build-wasm.sh                       pack SDK + build dist/*.wasm
+  generate-fixture.sh                 regenerate fixtures with a real run
+.github/workflows/demo.yml            CI: build wasm -> perfscale run -> allure -> Pages
+```
 
 ## Development
 
 ```bash
-npm test                       # node:test suite over the real fixture
-PERFSCALE=../path/to/perfscale ./scripts/generate-fixture.sh   # regenerate the fixture
+npm test                 # v1 converter: node:test suite over the real fixture
+npm run test:wasm        # wasm reporter unit tests (needs npm --prefix wasm install)
+npm run build:wasm       # rebuild dist/allure2-reporter.wasm
+
+# local end-to-end with a real perfscale binary:
+node scripts/echo-server.mjs &
+perfscale run -f scripts/demo.test.yaml -c scripts/demo.config.yaml -q
+allure serve allure-results
 ```
 
 ## License

@@ -1,0 +1,20 @@
+# Demo config — short, deterministic.
+vus: 2
+duration: 5s
+
+after:
+  - name: slo gate
+    use: std/thresholds@v1
+    with:
+      http_req_duration: ["p95<2000"]
+      http_req_failed: ["rate<0.05"]
+
+report:
+  labels:
+    suite: allure2-wasm-demo
+  reporters:
+    # note: the wasm path resolves relative to this config file, while
+    # `output` resolves relative to the run's working directory
+    - use: wasm:../dist/allure2-reporter.wasm
+      with:
+        output: ./allure-results

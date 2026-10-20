@@ -1,0 +1,17 @@
+{
+  "name": "@perfscale/allure2-reporter-wasm",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "perfscale WASM reporter (perfscale:reporter@0.1.0) rendering report@v1 as Allure2 results",
+  "scripts": {
+    "build": "perfscale-library-build --kind reporter reporter.ts -o ../dist/allure2-reporter.wasm",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test reporter.test.ts"
+  },
+  "devDependencies": {
+    "@perfscale/library-sdk": "file:./perfscale-library-sdk-0.3.0.tgz",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
