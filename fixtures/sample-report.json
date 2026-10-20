@@ -1,0 +1,383 @@
+{
+  "schemaVersion": "report@v1",
+  "run": {
+    "run_id": "0d06f0ab-5cc3-4f14-80bd-2a0f1a3db432",
+    "engine": "native",
+    "perfscale_version": "0.26.0",
+    "vus": 2,
+    "started_at": "2026-10-20T12:16:13Z",
+    "duration_s": 5.039989458,
+    "labels": {
+      "env": "ci",
+      "suite": "hello"
+    }
+  },
+  "steps": [
+    {
+      "name": "homepage",
+      "action": "std/http@v1",
+      "count": 25,
+      "failed": 0,
+      "rate": 4.96032783566985,
+      "duration": {
+        "avg": 0.20785152,
+        "min": 0.135168,
+        "p50": 0.140287,
+        "p90": 0.245759,
+        "p95": 0.716799,
+        "p99": 0.823295,
+        "max": 0.823295
+      },
+      "samples": {
+        "values": [
+          0.71656775,
+          0.135603916,
+          0.136064958,
+          0.822458041,
+          0.139582917,
+          0.136697375,
+          0.143987666,
+          0.21802125,
+          0.135794667,
+          0.19190725,
+          0.165091583,
+          0.13982575,
+          0.165424375,
+          0.245571792,
+          0.136619833,
+          0.136501708,
+          0.135316584,
+          0.136078209,
+          0.170890333,
+          0.22189325,
+          0.136743542,
+          0.191320375,
+          0.136264791,
+          0.13782775,
+          0.168020417
+        ],
+        "truncated": false,
+        "recorded": 25
+      }
+    },
+    {
+      "name": "log status",
+      "action": "std/log@v1",
+      "count": 24,
+      "failed": 0,
+      "rate": 4.761914722243056,
+      "duration": {
+        "avg": 0.000032791666666666666,
+        "min": 0.000013,
+        "p50": 0.000023,
+        "p90": 0.000042,
+        "p95": 0.000085,
+        "p99": 0.000168,
+        "max": 0.000168
+      },
+      "samples": {
+        "values": [
+          0.000168167,
+          0.000027083,
+          0.000014,
+          0.000029584,
+          0.000024667,
+          0.000029541,
+          0.000021875,
+          0.000021875,
+          0.0000255,
+          0.000042209,
+          0.0000255,
+          0.000015833,
+          0.000022167,
+          0.000022416000000000004,
+          0.000022542,
+          0.000084958,
+          0.000022334,
+          0.000022875,
+          0.000031875,
+          0.00002175,
+          0.000020708,
+          0.000029667,
+          0.000012542,
+          0.000024042
+        ],
+        "truncated": false,
+        "recorded": 24
+      }
+    },
+    {
+      "name": "std/sleep@v1",
+      "action": "std/sleep@v1",
+      "count": 24,
+      "failed": 0,
+      "rate": 4.761914722243056,
+      "duration": {
+        "avg": 0.20177066666666668,
+        "min": 0.200704,
+        "p50": 0.202751,
+        "p90": 0.202751,
+        "p95": 0.202751,
+        "p99": 0.202751,
+        "max": 0.202751
+      },
+      "samples": {
+        "values": [
+          0.202144166,
+          0.201424625,
+          0.201690583,
+          0.2018035,
+          0.201781125,
+          0.20104275,
+          0.202368959,
+          0.202051125,
+          0.202243167,
+          0.202456,
+          0.201242375,
+          0.201704167,
+          0.202346,
+          0.202044458,
+          0.201503292,
+          0.201434625,
+          0.202271417,
+          0.200913458,
+          0.202026583,
+          0.201356458,
+          0.2022005,
+          0.20158325,
+          0.20167962499999997,
+          0.202704791
+        ],
+        "truncated": false,
+        "recorded": 24
+      }
+    }
+  ],
+  "verdicts": [
+    {
+      "threshold": "http_req_duration",
+      "expression": "p95<2000",
+      "pass": true,
+      "observed": 704.511
+    },
+    {
+      "threshold": "http_req_failed",
+      "expression": "rate<0.05",
+      "pass": true,
+      "observed": 0.0
+    }
+  ],
+  "metrics": [
+    {
+      "name": "http_req_duration",
+      "family": "http",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Request duration, recorded by every request-like step",
+      "recorded": true,
+      "series": [
+        {
+          "quantiles": {
+            "0.5": 0.140287,
+            "0.9": 0.245759,
+            "0.95": 0.704511,
+            "0.99": 0.811007
+          },
+          "count": 25.0,
+          "sum": 5.16864
+        }
+      ]
+    },
+    {
+      "name": "http_req_failed",
+      "family": "http",
+      "kind": "rate",
+      "unit": "ratio",
+      "description": "Share of failed requests (failed/total)",
+      "recorded": true,
+      "series": [
+        {
+          "total": 25.0,
+          "failed": 0.0
+        }
+      ]
+    },
+    {
+      "name": "http_reqs",
+      "family": "http",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Total requests",
+      "recorded": true,
+      "series": [
+        {
+          "value": 25.0
+        }
+      ]
+    },
+    {
+      "name": "perfscale_iterations_completed",
+      "family": "http",
+      "kind": "gauge",
+      "unit": "count",
+      "description": "Iterations started since run start (during-run snapshots)",
+      "recorded": true,
+      "series": [
+        {
+          "value": 25.0
+        }
+      ]
+    },
+    {
+      "name": "perfscale_vus",
+      "family": "http",
+      "kind": "gauge",
+      "unit": "count",
+      "description": "Live VU count (configured count on fixed runs)",
+      "recorded": true,
+      "series": [
+        {
+          "value": 2.0
+        }
+      ]
+    },
+    {
+      "name": "llm_ttft_ms",
+      "family": "llm",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Time to first token",
+      "recorded": false
+    },
+    {
+      "name": "llm_tokens_per_sec",
+      "family": "llm",
+      "kind": "sample",
+      "unit": "tok/s",
+      "description": "Completion throughput per request",
+      "recorded": false
+    },
+    {
+      "name": "llm_prompt_tokens",
+      "family": "llm",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Prompt tokens, summed across requests",
+      "recorded": false
+    },
+    {
+      "name": "llm_completion_tokens",
+      "family": "llm",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Completion tokens, summed across requests",
+      "recorded": false
+    },
+    {
+      "name": "llm_chunks",
+      "family": "llm",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Streamed chunks, summed across requests",
+      "recorded": false
+    },
+    {
+      "name": "pubsub_msgs_published",
+      "family": "pubsub",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Messages accepted by the transport",
+      "recorded": false
+    },
+    {
+      "name": "pubsub_msgs_received",
+      "family": "pubsub",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Messages counted toward the subscribe expectation",
+      "recorded": false
+    },
+    {
+      "name": "pubsub_publish_ms",
+      "family": "pubsub",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Publish-call latency per message (nats: the batch flush folds into the last sample)",
+      "recorded": false
+    },
+    {
+      "name": "pubsub_connect_ms",
+      "family": "pubsub",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Broker connect time per exchange that opened a connection (scope=exchange: every exchange; scope=vu: first exchange of each VU)",
+      "recorded": false
+    },
+    {
+      "name": "pubsub_errors",
+      "family": "pubsub",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Failed exchanges (connect/publish errors, subscribe shortfalls); 0 per success",
+      "recorded": false
+    },
+    {
+      "name": "pubsub_e2e_ms",
+      "family": "pubsub",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "End-to-end latency: publish-phase start to message receipt",
+      "recorded": false
+    },
+    {
+      "name": "engine_scheduler_lag_ms",
+      "family": "engine",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Tokio scheduler lag: probe wake-up delay (actual minus expected)",
+      "recorded": false
+    },
+    {
+      "name": "engine_log_channel_depth_max",
+      "family": "engine",
+      "kind": "gauge",
+      "unit": "lines",
+      "description": "Peak pending lines in the bounded run-log channel",
+      "recorded": false
+    },
+    {
+      "name": "engine_arrival_queue_wait_ms",
+      "family": "engine",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Arrival profile: scheduled-to-actual iteration start delay (coordinated omission)",
+      "recorded": false
+    },
+    {
+      "name": "engine_arrival_iteration_ms",
+      "family": "engine",
+      "kind": "sample",
+      "unit": "ms",
+      "description": "Arrival profile: queue wait + iteration body, measured from the scheduled start",
+      "recorded": false
+    },
+    {
+      "name": "dropped_iterations",
+      "family": "engine",
+      "kind": "counter",
+      "unit": "count",
+      "description": "Arrival permits no worker could serve (pool saturated at arrival.max_vus)",
+      "recorded": false
+    },
+    {
+      "name": "engine_log_lines_dropped",
+      "family": "engine",
+      "kind": "counter",
+      "unit": "lines",
+      "description": "Per-step log lines dropped because the bounded run-log channel was full",
+      "recorded": false
+    }
+  ],
+  "seq": null,
+  "samples": []
+}
